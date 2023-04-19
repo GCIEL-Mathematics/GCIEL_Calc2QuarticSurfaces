@@ -7,6 +7,7 @@
 
 
 RWStructuredBuffer<float> _Weights;
+// RWStructuredBuffer<float3x4> _Vectors;
 
 float _IsoLevel;
 float3 _PlaneForward;
@@ -23,6 +24,30 @@ float3 interp(float3 sideVertex1, float valueAtPoint1, float3 sideVertex2, float
 {
     return (sideVertex1 + (_IsoLevel - valueAtPoint1) * (sideVertex2 - sideVertex1) / (valueAtPoint2 - valueAtPoint1));
 }
+
+// float3 CrossProd(float3 vec1, float3 vec2){
+//     float3 cross;
+//     cross.x = vec1.y * vec2.z - vec1.z * vec2.y;
+//     cross.y = vec1.z * vec2.x - vec1.x * vec2.z;
+//     cross.z = vec1.x * vec2.y - vec1.y * vec2.x;
+//     return cross;
+// }
+
+// float Magnitude(float3 vec){
+//     return sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+// }
+
+// float3 Normalized(float3 vec){
+//     return vec / Magnitude(vec);
+// }
+
+// float DotProd(float3 vec1, float3 vec2){
+//     return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;
+// }
+
+// float3 MidPoint(float3 vec1, float3 vec2){
+//     return float3((vec1.x + vec2.x)/2, (vec1.y + vec2.y)/2, (vec1.z + vec1.y)/2);
+// }
 
 
 [numthreads(numThreads, numThreads, 1)]
@@ -65,6 +90,34 @@ void March(uint3 id : SV_DispatchThreadID)
         seg.a = (interpA.x + id.x - _ChunkSize / 2.0f) * float3(1, 0, 0) + (interpA.z + id.y - _ChunkSize / 2.0f) * float3(0, 0, 1);
         seg.b = (interpB.x + id.x - _ChunkSize / 2.0f) * float3(1, 0, 0) + (interpB.z + id.y - _ChunkSize / 2.0f) * float3(0, 0, 1);
         _Segments.Append(seg);
+
+        // float3 n = CrossProd(_PlaneRight, _PlaneForward); // Calculate the normal out of the plane for rotating segments
+
+        // float3 dir = seg.b - seg.a; // Find direction each segment points in
+        // float3 pos = MidPoint(seg.a, seg.b);
+        // float mag = Magnitude(dir);
+
+        // // Precalculate some values used in the transformation
+        // float CosTH = DotProd(dir, float3(0, 0, 1)) / mag;
+        // float SinTH = Magnitude(CrossProd(float3(0,0,1), dir)) / mag;
+        // float OneMCos = 1 - CosTH;
+
+        // // Define the rotational transformation matrix to describe transformations on segment mesh
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m00 = (CosTH + n.x * n.x * OneMCos);
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m01 = (n.x * n.y * OneMCos - n.z * SinTH);
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m02 = mag * (n.x * n.z * OneMCos + n.y * SinTH);
+
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m10 = (n.y * n.x * OneMCos + n.z * SinTH);
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m11 = (CosTH + n.y * n.y * OneMCos);
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m12 = mag * (n.y * n.z * OneMCos - n.x * SinTH);
+
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m20 = (n.z * n.x * OneMCos - n.y * SinTH);
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m21 = (n.z * n.y * OneMCos + n.x * SinTH);
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m22 = mag * (CosTH + n.z * n.z * OneMCos);
+
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m03 = pos.x;
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m13 = pos.y;
+        // _Vectors[indexFromCoord(id.x, id.y, 0)]._m23 = pos.z;
     }
 
 }

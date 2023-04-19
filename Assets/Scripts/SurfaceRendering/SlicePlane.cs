@@ -9,10 +9,13 @@ public class SlicePlane : MonoBehaviour
     ComputeBuffer _segmentsBuffer;
     ComputeBuffer _segmentsCountBuffer;
     ComputeBuffer _weightsBuffer;
-    ComputeBuffer _vectorsBuffer;
+    // ComputeBuffer _vectorsBuffer;
 
     public NoiseGenerator NoiseGenerator;
     public ChunkVolume chunkVolume;
+
+    public Material segmentMat;
+    public Mesh segmentMesh;
 
     public GameObject segmentPrefab;
     public Transform planeIntersectParent;
@@ -68,11 +71,16 @@ public class SlicePlane : MonoBehaviour
         MarchingShader.SetFloat("_IsoLevel", .5f);
         MarchingShader.SetVector("_PlaneForward", transform.forward);
         MarchingShader.SetVector("_PlaneRight", transform.right);
+        // MarchingShader.SetBuffer(0, "_Vectors", _vectorsBuffer);
         
         _weightsBuffer.SetData(_weights);
         _segmentsBuffer.SetCounterValue(0);
 
         MarchingShader.Dispatch(0, planeGridPoints / GridMetrics.NumThreads, planeGridPoints / GridMetrics.NumThreads, 1);
+
+        // segmentMat.SetBuffer("_Vectors", _vectorsBuffer);
+        // var bounds = new Bounds(transform.position, new Vector3(GridMetrics.PointsPerChunk, GridMetrics.PointsPerChunk, GridMetrics.PointsPerChunk));
+        // Graphics.DrawMeshInstancedProcedural(segmentMesh, 0, segmentMat, bounds, GridMetrics.PointsPerChunk * GridMetrics.PointsPerChunk);
 
         Segment[] segments = new Segment[ReadSegmentCount()];
         _segmentsBuffer.GetData(segments);
@@ -85,7 +93,7 @@ public class SlicePlane : MonoBehaviour
             Vector3 pt1 = transform.position + (transform.right * seg.a.x + transform.forward * seg.a.z) * (chunkVolume.size / 100);
             Vector3 pt2 = transform.position + (transform.right * seg.b.x + transform.forward * seg.b.z) * (chunkVolume.size / 100);
             Vector3 pos = (pt1 + pt2) * 0.5f;
-            Vector3 fromVolume = pos - chunkVolume.transform.position;
+            Vector3 fromVolume = (pos - chunkVolume.transform.position) * (100 / chunkVolume.size);
             
             if(Mathf.Abs(fromVolume.x) < GridMetrics.PointsPerChunk && 
                 Mathf.Abs(fromVolume.y) < GridMetrics.PointsPerChunk && 
@@ -131,12 +139,14 @@ public class SlicePlane : MonoBehaviour
         _segmentsBuffer = new ComputeBuffer(5 * (planeGridPoints * planeGridPoints), Segment.SizeOf, ComputeBufferType.Append);
         _segmentsCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
         _weightsBuffer = new ComputeBuffer(planeGridPoints * planeGridPoints * planeGridPoints, sizeof(float));
+        // _vectorsBuffer = new ComputeBuffer(planeGridPoints * planeGridPoints, 3 * 4 * sizeof(float));
     }
 
     void ReleaseBuffers() {
         _segmentsBuffer.Release();
         _segmentsCountBuffer.Release();
         _weightsBuffer.Release();
+        // _vectorsBuffer.Release();
     }
 
 }
