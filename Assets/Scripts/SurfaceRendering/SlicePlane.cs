@@ -100,7 +100,7 @@ public class SlicePlane : MonoBehaviour
                 Mathf.Abs(fromVolume.z) < GridMetrics.PointsPerChunk){
                 Vector3 dir = (pt2 - pt1);
                 GameObject newSeg = Instantiate(segmentPrefab, pos, Quaternion.FromToRotation(Vector3.up, dir), planeIntersectParent);
-                newSeg.transform.localScale = new Vector3(0.001f, dir.magnitude * 0.6f, 0.001f);
+                newSeg.transform.localScale = new Vector3(0.005f, dir.magnitude * 0.6f, 0.005f);
             }
         }
 
