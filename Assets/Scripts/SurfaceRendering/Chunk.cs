@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+
+/*
+Here is the actual definition of each chunk. Each one has the required information to dispatch to the compute shader
+which then calculates the triangles needed to make up the mesh of each chunk.
+*/
+
 public class Chunk : MonoBehaviour
 {
     public ComputeShader MarchingShader;
@@ -35,11 +41,12 @@ public class Chunk : MonoBehaviour
     float[] _weights;
 
     public void Render(){
-        _weights = NoiseGenerator.GetNoise();
+        _weights = NoiseGenerator.GetNoise(); // The "noise" is the function that defines what is inside and outside the object. The mesh is made around this.
         MeshFilter.sharedMesh = ConstructMesh();
     }
 
     Mesh ConstructMesh() {
+        // Here we pass the required information to the GPU to calculate the triangles of the mesh
         MarchingShader.SetBuffer(0, "_Triangles", _trianglesBuffer);
         MarchingShader.SetBuffer(0, "_Weights", _weightsBuffer);
 
@@ -51,9 +58,10 @@ public class Chunk : MonoBehaviour
         _weightsBuffer.SetData(_weights);
         _trianglesBuffer.SetCounterValue(0);
 
-
+        // This is the actual call to the compute shader to do its thing. 
         MarchingShader.Dispatch(0, GridMetrics.PointsPerChunk / GridMetrics.NumThreads, GridMetrics.PointsPerChunk / GridMetrics.NumThreads, GridMetrics.PointsPerChunk / GridMetrics.NumThreads);
 
+        // The triangle information is now in the _trianglesBuffer so we access that on the CPU side
         Triangle[] triangles = new Triangle[ReadTriangleCount()];
         _trianglesBuffer.GetData(triangles);
 
@@ -68,6 +76,8 @@ public class Chunk : MonoBehaviour
     }
 
     Mesh CreateMeshFromTriangles(Triangle[] triangles) {
+        // Here we make the actual mesh. We make 6 verticies instead of just 3 so that the triangle is rendered on both sides.
+        // The verticies in the verts list will be visible from the side that defines them clockwise 
         Vector3[] verts = new Vector3[triangles.Length * 6];
         int[] tris = new int[triangles.Length * 6];
 
@@ -98,6 +108,8 @@ public class Chunk : MonoBehaviour
         return mesh;
     }
 
+    // If you want to visualize the points of the grid that the mesh is defined on, uncomment this section. WARNING: LOW FPS
+
     // private void OnDrawGizmos() {
     //     if (_weights == null || _weights.Length == 0) {
     //         return;
@@ -118,12 +130,14 @@ public class Chunk : MonoBehaviour
     //     }
     // }
 
+    // Define the buffers that will be dispatched to the computer shader
     void CreateBuffers() {
         _trianglesBuffer = new ComputeBuffer(5 * (GridMetrics.PointsPerChunk * GridMetrics.PointsPerChunk * GridMetrics.PointsPerChunk), Triangle.SizeOf, ComputeBufferType.Append);
         _trianglesCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
         _weightsBuffer = new ComputeBuffer(GridMetrics.PointsPerChunk * GridMetrics.PointsPerChunk * GridMetrics.PointsPerChunk, sizeof(float));
     }
 
+    // Indicate to the garbage collector that this memory is now free
     void ReleaseBuffers() {
         _trianglesBuffer.Release();
         _trianglesCountBuffer.Release();
