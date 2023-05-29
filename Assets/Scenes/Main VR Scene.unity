@@ -1767,7 +1767,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c875e97b6f77424b9edfbe1565859f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  function: 7
+  function: 0
   chunkPrefab: {fileID: 7339191131449549386, guid: d31ddd466f721f2419d3b2598eddf048,
     type: 3}
   chunks: []
@@ -1784,7 +1784,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 940721835}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.8, z: 0}
+  m_LocalPosition: {x: 0, y: 1.2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3747,7 +3747,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1961003778}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.8, z: 0}
+  m_LocalPosition: {x: 0, y: 1.2, z: 0}
   m_LocalScale: {x: 0.08, y: 1, z: 0.08}
   m_ConstrainProportionsScale: 0
   m_Children:
